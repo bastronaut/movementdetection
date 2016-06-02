@@ -7,42 +7,9 @@ import imutils
 import cv2
 import matplotlib
 
-# initialize the HOG descriptor/person detector
-hog = cv2.HOGDescriptor()
-hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
-
-kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
-fgbg = cv2.createBackgroundSubtractorGMG()
-
-cap = cv2.VideoCapture(0)
-
-pedestrianresults = []
-# loop over the image paths
-# for imagePath in paths.list_images(args["images"]):
-	# load the image and resize it to (1) reduce detection time
-	# and (2) improve detection accuracy
-	# image = cv2.imread(imagePath)
-i = 0
-# while (True):
-while i < 5:
-    ret, image = cap.read()
-    image = imutils.resize(image, width=min(400, image.shape[1]))
-    orig = image.copy()
-
-    backgroundsubtractor(image)
-    pedestriandetection(image)
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-    i += 1
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-
 def backgroundsubtractor(image):
     fgmask = fgbg.apply(image)
-    fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, kernel)
+    # fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, kernel)
 
     cv2.imshow('image',fgmask)
 
@@ -72,21 +39,35 @@ def pedestriandetection(image):
     pedestrianresults.append(image)
 
 
-for image in pedestrianresults:
-    print(image)
-    cv2.imshow('image', image)
-    cv2.waitKey(0)
-# cap = cv2.VideoCapture(0)
-#
-# while(True):
-#    # Capture frame-by-frame
-#     ret, frame = cap.read()
-#
-#     # Our operations on the frame come here
-#     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-#
-#     # Display the resulting frame
-#     cv2.imshow('frame',gray)
+if __name__ == "__main__":
+    # initialize the HOG descriptor/person detector
+    hog = cv2.HOGDescriptor()
+    hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
-#
-#     # When everything done, release the capture
+    # initialize foreground/background detector
+    fgbg = cv2.createBackgroundSubtractorMOG2()
+
+    cap = cv2.VideoCapture(0)
+
+    pedestrianresults = []
+    i = 0
+    while i < 5:
+        ret, image = cap.read()
+        image = imutils.resize(image, width=min(400, image.shape[1]))
+        orig = image.copy()
+
+        backgroundsubtractor(image)
+        # pedestriandetection(image)
+
+        i += 1
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            cap.release()
+            cv2.destroyAllWindows()
+            break
+
+
+
+    for image in pedestrianresults:
+        print(image)
+        cv2.imshow('image', image)
+        cv2.waitKey(0)
