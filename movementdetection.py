@@ -9,20 +9,14 @@ import matplotlib
 
 def backgroundsubtractor(image):
     fgmask = fgbg.apply(image)
-    # fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, kernel)
-
     cv2.imshow('image',fgmask)
+    return fgmask
 
 
 def pedestriandetection(image):
 	# detect people in the image
     (rects, weights) = hog.detectMultiScale(image, winStride=(4, 4),
     	padding=(8, 8), scale=1.05)
-
-    # draw the original bounding boxes
-    for (x, y, w, h) in rects:
-        cv2.rectangle(orig, (x, y), (x + w, y + h), (0, 0, 255), 2)
-
     # apply non-maxima suppression to the bounding boxes using a
     # fairly large overlap threshold to try to maintain overlapping
     # boxes that are still people
@@ -32,11 +26,7 @@ def pedestriandetection(image):
     # draw the final bounding boxes
     for (xA, yA, xB, yB) in pick:
         cv2.rectangle(image, (xA, yA), (xB, yB), (0, 255, 0), 2)
-
-    # show the output images
-    # cv2.imshow("After NMS", image)
-    cv2.waitKey(0)
-    pedestrianresults.append(image)
+    return image
 
 
 if __name__ == "__main__":
@@ -46,28 +36,23 @@ if __name__ == "__main__":
 
     # initialize foreground/background detector
     fgbg = cv2.createBackgroundSubtractorMOG2()
-
+    # set the video capturing
     cap = cv2.VideoCapture(0)
 
     pedestrianresults = []
-    i = 0
-    while i < 5:
-        ret, image = cap.read()
-        image = imutils.resize(image, width=min(400, image.shape[1]))
-        orig = image.copy()
+    while len(pedestrianresults)  < 5:
+        ret, imagecap = cap.read()
+        image = imutils.resize(imagecap, width=min(400, imagecap.shape[1]))
+        # orig = image.copy()
 
-        backgroundsubtractor(image)
-        # pedestriandetection(image)
+        # fgbgimage = backgroundsubtractor(image)
+        pedimage = pedestriandetection(image)
 
-        i += 1
+        cv2.imshow('image', fgbgimage)
+
+        pedestrianresults.append(pedimage)
+
         if cv2.waitKey(1) & 0xFF == ord('q'):
             cap.release()
             cv2.destroyAllWindows()
             break
-
-
-
-    for image in pedestrianresults:
-        print(image)
-        cv2.imshow('image', image)
-        cv2.waitKey(0)
